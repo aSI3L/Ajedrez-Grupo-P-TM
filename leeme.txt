@@ -1,0 +1,19 @@
+Metodología de la Investigación
+
+Proyecto Ajedrez
+
+Profesor: Carlos Rodriguez.
+Integrantes: Alvarez Asiel, Contreras Pedro, Lozano Nicolas, Vidable Juan.
+
+Proyecto:
+    Como proyecto final, se decidió seguir la sugerencia del profesor de realizar
+    un juego de ajedrez en la que el usuario juegue contra una IA (Inteligencia
+    Artificial), junto con una interfaz gráfica básica y entendible.
+
+Lenguaje:
+    El proyecto está desarrollado en Python3 junto con la libreria PyGame para
+    la interfaz gráfica.
+
+Herramienta de Trabajo Grupal:
+    Como herramienta principal para la coordinación del trabajo en grupo, se
+    utiliza GIT junto con la plataforma de GitHub para subir el repositorio.
