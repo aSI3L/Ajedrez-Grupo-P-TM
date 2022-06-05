@@ -584,9 +584,201 @@ def alfil_movimientos(moviendo_pieza, tablero, color):
 
 #Funciones, Ataques, Evaluaciones
 
+#define situacion de ataque segun color c/contador
+def bajo_ataque(objetivo, tablero, atacando_color):
+    return cuenta_ataques(objetivo, tablero, atacando_color) > 0
+#define situacion de jaque cuando rey esta bajo ataque
+def jaque(tablero, color):
+    return bajo_ataque(get_king(tablero, color), tablero, opuesto_color(color))
+#retornamos la pieza, pieza y color que ataca
+def get_ataques(moviendo_pieza, tablero, color):
+    pieza = tablero[bb2index(moviendo_pieza)]
+
+    if pieza&PIEZA_MASK == PEON:
+        return peon_ataca(moviendo_pieza, tablero, color)
+    elif pieza&PIEZA_MASK == CABALLO:
+        return caballo_ataca(moviendo_pieza)
+    elif pieza&PIEZA_MASK == ALFIL:
+        return alfil_ataca(moviendo_pieza, tablero, color)
+    elif pieza&PIEZA_MASK == TORRE:
+        return torre_ataca(moviendo_pieza, tablero, color)
+    elif pieza&PIEZA_MASK == QUEEN:
+        return queen_ataca(moviendo_pieza, tablero, color)
+    elif pieza&PIEZA_MASK == KING:
+        return king_ataca(moviendo_pieza)
+#define el movimiento de piezas con el tipo de pieza
+def get_movimientos(moviendo_pieza, juega, color):
+    pieza = juega.tablero[bb2index(moviendo_pieza)]
+
+    if pieza&PIEZA_MASK == PEON:
+        return peon_movimientos(moviendo_pieza, juega, color)
+    elif pieza&PIEZA_MASK == CABALLO:
+        return caballo_movimientos(moviendo_pieza, juega.tablero, color)
+    elif pieza&PIEZA_MASK == ALFIL:
+        return alfil_movimientos(moviendo_pieza, juega.tablero, color)
+    elif pieza&PIEZA_MASK == TORRE:
+        return torre_movimientos(moviendo_pieza, juega.tablero, color)
+    elif pieza&PIEZA_MASK == QUEEN:
+        return queen_movimientos(moviendo_pieza, juega.tablero, color)
+    elif pieza&PIEZA_MASK == KING:
+        return king_movimientos(moviendo_pieza, juega.tablero, color)
+#contador de ataques segun el color
+def cuenta_ataques(objetivo, tablero, atacando_color):
+    ataque_contador = 0
+
+    for index in range(64):
+        pieza = tablero[index]
+        if pieza != VACIO and pieza&COLOR_MASK == atacando_color:
+            pos = 0b1 << index
+            
+            if get_ataques(pos, tablero, atacando_color) & objetivo:
+                ataque_contador += 1
+                      
+    return ataque_contador
+#cuenta el material en tablero
+def material_sumat(tablero, color):
+    material = 0
+    for pieza in tablero:
+        if pieza&COLOR_MASK == color:
+            material += PIEZA_VALOR[pieza&PIEZA_MASK]
+    return material
+#evalua diferencia de material entre jugadores
+def material_saldo(tablero):
+    return material_sumat(tablero, BLANCO) - material_sumat(tablero, NEGRO)
+#evalua diferenccia de movimientos entre jugadores
+def movimientos_saldo(juega):
+    return cont_movim_legales(juega, BLANCO) - cont_movim_legales(juega, NEGRO)
+# evalua estado del juego
+def evalua_juego(juega):
+    if finaliza_juego(juega):
+        return evalua_final(juega)
+    else:
+        return material_saldo(juega.tablero) + saldo_posicion(juega)
+#evalua condicion de finalizacion
+def evalua_final(juega):
+    if jaquemate(juega, juega.mueve_prim):
+        return puntaje(juega.mueve_prim)
+    elif juego_ahogado(juega) or \
+         material_insuficiente(juega) or \
+         menos_75_movim_regla(juega):
+        return 0
 
 #Puntajes
 
+def saldo_posicion(juega):
+    return bonus_posicion(juega, BLANCO) - bonus_posicion(juega, NEGRO) 
+
+def bonus_posicion(juega, color):
+    bonus = 0
+    
+    if color == BLANCO:
+        tablero = juega.tablero
+    elif color == NEGRO:
+        tablero = inv_tablero_v(juega.tablero)
+        
+    for index in range(64):
+        pieza = tablero[index]
+        
+        if pieza != VACIO and pieza&COLOR_MASK == color:
+            pieza_tipo = pieza&PIEZA_MASK
+            
+            if pieza_tipo == PEON:
+                bonus += PEON_BONUS[index]
+            elif pieza_tipo == CABALLO:
+                bonus += CABALLO_BONUS[index]
+            elif pieza_tipo == ALFIL:
+                bonus += ALFIL_BONUS[index]
+             
+            elif pieza_tipo == TORRE:
+                posicion = 0b1 << index
+                 
+                if is_open_file(posicion, tablero):
+                    bonus += TORRE_OPEN_FILE_BONUS
+                elif is_semi_open_file(posicion, tablero):
+                    bonus += TORRE_SEMI_OPEN_FILE_BONUS
+                     
+                if posicion & RANGO_7:
+                    bonus += TORRE_EN_SEPTIMA_BONUS
+                 
+            elif pieza_tipo == KING:
+                if fin_del_juego(tablero):
+                    bonus += KING_FINJUEG_BONUS[index]
+                else:
+                    bonus += KING_BONUS[index]
+    
+    return bonus
+
+def fin_del_juego(tablero):
+    return cuenta_piezas(ocupado_casilleros(tablero)) <= FINJUEG_PIEZA_RESUL
+#open file: fila sin peones
+def is_open_file(bitboard, tablero):
+    for f in FILAS:
+        rango_filtro = get_fila(f)
+        if bitboard & rango_filtro:
+            return cuenta_piezas(get_peones_total(tablero)&rango_filtro) == 0
+#semi open file: fila con peones de un solo color
+def is_semi_open_file(bitboard, tablero):
+    for f in FILAS:
+        rango_filtro = get_fila(f)
+        if bitboard & rango_filtro:
+            return cuenta_piezas(get_peones_total(tablero)&rango_filtro) == 1
+#cuenta espacios ocupados en el tablero de bits
+def cuenta_piezas(bitboard):
+    return bin(bitboard).count("1")
+#evalua puntaje por color
+def puntaje(color):
+    if color == BLANCO:
+        return -10*PIEZA_VALOR[KING]
+    if color == NEGRO:
+        return 10*PIEZA_VALOR[KING]
+#movimientos que no tienen en cuenta las demas piezas
+def movim_pseudo_legales(juega, color):
+    for index in range(64):
+        pieza = juega.tablero[index]
+
+        if pieza != VACIO and pieza&COLOR_MASK == color:
+            pieza_pos = 0b1 << index
+            
+            for objetivo in indiv_gen(get_movimientos(pieza_pos, juega, color)):
+                yield (pieza_pos, objetivo)
+
+    if puede_enrocar_kingside(juega, color):
+        yield (get_king(juega.tablero, color), lado_este(lado_este(get_king(juega.tablero, color))))
+    if puede_enrocar_queenside(juega, color):
+        yield (get_king(juega.tablero, color), lado_oeste(lado_oeste(get_king(juega.tablero, color))))
+#movimientos permitidos
+def movimientos_legales(juega, color):
+    for movim in movim_pseudo_legales(juega, color):
+        if movim_legal(juega, movim):
+            yield movim
+#movimientos que no dejan al propio rey en jaque
+def movim_legal(juega, movim):
+    new_juega = mueve(juega, movim)
+    return not jaque(new_juega.tablero, juega.mueve_prim)
+#contador de movimientos permitidos
+def cont_movim_legales(juega, color):
+    cuenta_movim = 0
+    for _ in movimientos_legales(juega, color):
+        cuenta_movim += 1
+    return cuenta_movim
+
+def juego_ahogado(juega):
+    for _ in movimientos_legales(juega, juega.mueve_prim):
+        return False
+    return not jaque(juega.tablero, juega.mueve_prim)
+  
+def jaquemate(juega, color):
+    for _ in movimientos_legales(juega, juega.mueve_prim):
+        return False
+    return jaque(juega.tablero, color)  
+
+def misma_posicion(FEN_a, FEN_b):
+    FEN_a_list = FEN_a.split(' ')
+    FEN_b_list = FEN_b.split(' ')
+    return FEN_a_list[0] == FEN_b_list[0] and \
+           FEN_a_list[1] == FEN_b_list[1] and \
+           FEN_a_list[2] == FEN_b_list[2] and \
+           FEN_a_list[3] == FEN_b_list[3]
 
 #Reglas
 

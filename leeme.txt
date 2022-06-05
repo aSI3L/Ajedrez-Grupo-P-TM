@@ -6,9 +6,9 @@ Profesor: Carlos Rodriguez.
 Integrantes: Alvarez Asiel, Contreras Pedro, Lozano Nicolas, Vidable Juan.
 
 Proyecto:
-    Como proyecto final, se decidió seguir la sugerencia del profesor de realizar
-    un juego de ajedrez en la que el usuario juegue contra una IA (Inteligencia
-    Artificial), junto con una interfaz gráfica básica y entendible.
+    Como proyecto final, se decidió realizar un juego de ajedrez en la que 
+    el usuario juegue contra una IA (Inteligencia Artificial), junto con 
+    una interfaz gráfica básica y entendible.
 
 Lenguaje:
     El proyecto está desarrollado en Python3 junto con la libreria PyGame para
