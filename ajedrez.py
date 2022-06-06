@@ -4,7 +4,7 @@
 # ========== JUEGO ==========
 
 class Juega:
-	#funcion donde se instancia el talero Y MOVIMIENTOS
+	#Funcion donde se instancia el talero y los movimientos
     def __init__(self, FEN=''):
         self.tablero = TABLERO_INICIO
         self.mueve_prim = BLANCO
@@ -21,10 +21,12 @@ class Juega:
             self.posicion_historial.append(INICIAL_FEN)
             
         self.movimientos_historial = []
-   #FUNCION QUE RETORNA LOS MOVIMIENTOS
+
+   #Funcion que retorna los movimientos
     def get_mov_list(self):
         return ' '.join(self.movimientos_historial)
-    #FUNCION QUE TRABAJA CON EL RANGO DE MOVIEMIENTOS DE LAS FICHAS (ZONA VERTICAL DEL TABLERO)
+
+    #Funcion que trabaja con el rango de movimientos de las fichas (zona vertical del tablero)
     def to_FEN(self):
         FEN_str = ''
 
@@ -70,8 +72,9 @@ class Juega:
         FEN_str += ' {}'.format(self.halfmove_clock)
         FEN_str += ' {}'.format(self.fullmove_number)
         return FEN_str
-    # funcion que separa y ordena las piezas del tablero(Blancas y Negras ) en una especie de Lista o cadena separadas
-    # una de otra instanciado los objetos que seran invocados para utilizar el metodo 
+
+    #Funcion que separa y ordena las piezas del tablero (Blancas y Negras) en una especie de lista o cadena separadas
+    #una de otra instanciado los objetos que seran invocados para utilizar el metodo
     def load_FEN(self, FEN_str):
         FEN_list = FEN_str.split(' ')
         
@@ -116,9 +119,7 @@ class Juega:
         self.halfmove_clock = int(FEN_list[4])
         self.fullmove_number = int(FEN_list[5])
 
-
-
-#==========FUNCIONES==========
+# ========== FUNCIONES ==========
 
 #Se asigna un índice a los bits disponibles para el tablero
 def get_pieza(tablero, bitboard):
@@ -408,7 +409,7 @@ def get_filtro(filtro_str):
     if filtro_str in RANGOS:
         return get_rango(filtro_str)
 
-# ========== PIEZAS ========
+# ==================== PIEZAS ====================
 
 # ========== PEON ==========
 
@@ -643,8 +644,6 @@ def linea_SO(moviendo_pieza):
         linea_atq |= lado_SO(linea_atq)
     return linea_atq & CASILLEROS
 
-
-
 def ataca_NE(pieza_indiv, tablero, color):
     bloq = lsb(linea_NE(pieza_indiv) & ocupado_casilleros(tablero))
     if bloq:
@@ -688,23 +687,112 @@ def alfil_ataca(moviendo_pieza, tablero, color):
 def alfil_movimientos(moviendo_pieza, tablero, color):
     return alfil_ataca(moviendo_pieza, tablero, color) & nnot(get_piezas_color(tablero, color))
 
+#========== TORRE ==========
 
+def get_torres(board, color):
+    return list2int([ i == color|TORRE for i in tablero ])
 
-#Torre
+def torre_lineas(moviendo_pieza):
+    return rango_lineas(moviendo_pieza) | fila_lineas(moviendo_pieza)
 
+def rango_lineas(moviendo_pieza):
+    return linea_este(moviendo_pieza) | linea_oeste(moviendo_pieza)
 
-#Reina
+def fila_lineas(moviendo_pieza):
+    return linea_norte(moviendo_pieza) | linea_sur(moviendo_pieza)
 
+def linea_este(moviendo_pieza):
+    linea_atq = lado_este(moviendo_pieza)
+    for _ in range(6):
+        linea_atq |= lado_este(linea_atq)
+    return linea_atq & CASILLEROS
 
-#Funciones, Ataques, Evaluaciones
+def linea_oeste(moviendo_pieza):
+    linea_atq = lado_oeste(moviendo_pieza)
+    for _ in range(6):
+        linea_atq |= lado_oeste(linea_atq)
+    return linea_atq & CASILLEROS
 
-#define situacion de ataque segun color c/contador
+def linea_norte(moviendo_pieza):
+    linea_atq = lado_norte(moviendo_pieza)
+    for _ in range(6):
+        linea_atq |= lado_norte(linea_atq)
+    return linea_atq & CASILLEROS
+
+def linea_sur(moviendo_pieza):
+    linea_atq = lado_sur(moviendo_pieza)
+    for _ in range(6):
+        linea_atq |= lado_sur(linea_atq)
+    return linea_atq & CASILLEROS
+
+def ataca_este(pieza_indiv, tablero, color):
+    bloq = lsb(linea_este(pieza_indiv) & ocupado_casilleros(tablero))
+    if bloq:
+        return linea_este(pieza_indiv) ^ linea_este(bloq)
+    else:
+        return linea_este(pieza_indiv)
+    
+def ataca_oeste(pieza_indiv, tablero, color):
+    bloq = msb(linea_oeste(pieza_indiv) & ocupado_casilleros(tablero))
+    if bloq:
+        return linea_oeste(pieza_indiv) ^ linea_oeste(bloq)
+    else:
+        return linea_oeste(pieza_indiv)
+
+def rango_ataca(pieza_indiv, tablero, color):
+    return ataca_este(pieza_indiv, tablero, color) | ataca_oeste(pieza_indiv, tablero, color)
+
+def ataca_norte(pieza_indiv, tablero, color):
+    bloq = lsb(linea_norte(pieza_indiv) & ocupado_casilleros(tablero))
+    if bloq:
+        return linea_norte(pieza_indiv) ^ linea_norte(bloq)
+    else:
+        return linea_norte(pieza_indiv)
+    
+def ataca_sur(pieza_indiv, tablero, color):
+    bloq = msb(linea_sur(pieza_indiv) & ocupado_casilleros(tablero))
+    if bloq:
+        return linea_sur(pieza_indiv) ^ linea_sur(bloq)
+    else:
+        return linea_sur(pieza_indiv)
+
+def fila_ataca(pieza_indiv, tablero, color):
+    return ataca_norte(pieza_indiv, tablero, color) | ataca_sur(pieza_indiv, tablero, color)
+
+def torre_ataca(moviendo_pieza, tablero, color):
+    atq = 0
+    for pieza_indiv in indiv_gen(moviendo_pieza):
+        atq |= rango_ataca(pieza_indiv, tablero, color) | fila_ataca(pieza_indiv, tablero, color)
+    return atq
+
+def torre_movimientos(moviendo_pieza, tablero, color):
+    return torre_ataca(moviendo_pieza, tablero, color) & nnot(get_piezas_color(tablero, color))
+
+# ========== REINA ==========
+
+def get_queen(tablero, color):
+    return list2int([ i == color|QUEEN for i in tablero ])
+
+def queen_lineas(moviendo_pieza):
+    return torre_lineas(moviendo_pieza) | alfil_linea(moviendo_pieza)
+
+def queen_ataca(moviendo_pieza, tablero, color):
+    return alfil_ataca(moviendo_pieza, tablero, color) | torre_ataca(moviendo_pieza, tablero, color)
+
+def queen_movimientos(moviendo_pieza, tablero, color):
+    return alfil_movimientos(moviendo_pieza, tablero, color) | torre_movimientos(moviendo_pieza, tablero, color)
+
+# ========== FUNCIONES, ATAQUES, EVALUACIONES ==========
+
+#Define situacion de ataque segun color c/contador
 def bajo_ataque(objetivo, tablero, atacando_color):
     return cuenta_ataques(objetivo, tablero, atacando_color) > 0
-#define situacion de jaque cuando rey esta bajo ataque
+
+#Define situacion de jaque cuando rey esta bajo ataque
 def jaque(tablero, color):
     return bajo_ataque(get_king(tablero, color), tablero, opuesto_color(color))
-#retornamos la pieza, pieza y color que ataca
+
+#Retorna la pieza y color que ataca
 def get_ataques(moviendo_pieza, tablero, color):
     pieza = tablero[bb2index(moviendo_pieza)]
 
@@ -720,7 +808,8 @@ def get_ataques(moviendo_pieza, tablero, color):
         return queen_ataca(moviendo_pieza, tablero, color)
     elif pieza&PIEZA_MASK == KING:
         return king_ataca(moviendo_pieza)
-#define el movimiento de piezas con el tipo de pieza
+
+#Define el movimiento de piezas con el tipo de pieza
 def get_movimientos(moviendo_pieza, juega, color):
     pieza = juega.tablero[bb2index(moviendo_pieza)]
 
@@ -736,7 +825,8 @@ def get_movimientos(moviendo_pieza, juega, color):
         return queen_movimientos(moviendo_pieza, juega.tablero, color)
     elif pieza&PIEZA_MASK == KING:
         return king_movimientos(moviendo_pieza, juega.tablero, color)
-#contador de ataques segun el color
+
+#Contador de ataques segun el color
 def cuenta_ataques(objetivo, tablero, atacando_color):
     ataque_contador = 0
 
@@ -749,26 +839,31 @@ def cuenta_ataques(objetivo, tablero, atacando_color):
                 ataque_contador += 1
                       
     return ataque_contador
-#cuenta el material en tablero
+
+#Cuenta el material en tablero
 def material_sumat(tablero, color):
     material = 0
     for pieza in tablero:
         if pieza&COLOR_MASK == color:
             material += PIEZA_VALOR[pieza&PIEZA_MASK]
     return material
-#evalua diferencia de material entre jugadores
+
+#Evalua diferencia de material entre jugadores
 def material_saldo(tablero):
     return material_sumat(tablero, BLANCO) - material_sumat(tablero, NEGRO)
-#evalua diferenccia de movimientos entre jugadores
+
+#Evalua diferenccia de movimientos entre jugadores
 def movimientos_saldo(juega):
     return cont_movim_legales(juega, BLANCO) - cont_movim_legales(juega, NEGRO)
-# evalua estado del juego
+
+#Evalua estado del juego
 def evalua_juego(juega):
     if finaliza_juego(juega):
         return evalua_final(juega)
     else:
         return material_saldo(juega.tablero) + saldo_posicion(juega)
-#evalua condicion de finalizacion
+
+#Evalua condicion de finalizacion
 def evalua_final(juega):
     if jaquemate(juega, juega.mueve_prim):
         return puntaje(juega.mueve_prim)
@@ -777,7 +872,7 @@ def evalua_final(juega):
          menos_75_movim_regla(juega):
         return 0
 
-#Puntajes
+# ========== PUNTAJES ==========
 
 def saldo_posicion(juega):
     return bonus_posicion(juega, BLANCO) - bonus_posicion(juega, NEGRO) 
@@ -824,28 +919,33 @@ def bonus_posicion(juega, color):
 
 def fin_del_juego(tablero):
     return cuenta_piezas(ocupado_casilleros(tablero)) <= FINJUEG_PIEZA_RESUL
-#open file: fila sin peones
+
+#Open file: fila sin peones
 def is_open_file(bitboard, tablero):
     for f in FILAS:
         rango_filtro = get_fila(f)
         if bitboard & rango_filtro:
             return cuenta_piezas(get_peones_total(tablero)&rango_filtro) == 0
-#semi open file: fila con peones de un solo color
+
+#Semi open file: fila con peones de un solo color
 def is_semi_open_file(bitboard, tablero):
     for f in FILAS:
         rango_filtro = get_fila(f)
         if bitboard & rango_filtro:
             return cuenta_piezas(get_peones_total(tablero)&rango_filtro) == 1
-#cuenta espacios ocupados en el tablero de bits
+
+#Cuenta espacios ocupados en el tablero de bits
 def cuenta_piezas(bitboard):
     return bin(bitboard).count("1")
-#evalua puntaje por color
+
+#Evalua puntaje por color
 def puntaje(color):
     if color == BLANCO:
         return -10*PIEZA_VALOR[KING]
     if color == NEGRO:
         return 10*PIEZA_VALOR[KING]
-#movimientos que no tienen en cuenta las demas piezas
+
+#Movimientos que no tienen en cuenta las demas piezas
 def movim_pseudo_legales(juega, color):
     for index in range(64):
         pieza = juega.tablero[index]
@@ -860,16 +960,19 @@ def movim_pseudo_legales(juega, color):
         yield (get_king(juega.tablero, color), lado_este(lado_este(get_king(juega.tablero, color))))
     if puede_enrocar_queenside(juega, color):
         yield (get_king(juega.tablero, color), lado_oeste(lado_oeste(get_king(juega.tablero, color))))
-#movimientos permitidos
+
+#Movimientos permitidos
 def movimientos_legales(juega, color):
     for movim in movim_pseudo_legales(juega, color):
         if movim_legal(juega, movim):
             yield movim
-#movimientos que no dejan al propio rey en jaque
+
+#Movimientos que no dejan al propio rey en jaque
 def movim_legal(juega, movim):
     new_juega = mueve(juega, movim)
     return not jaque(new_juega.tablero, juega.mueve_prim)
-#contador de movimientos permitidos
+
+#Contador de movimientos permitidos
 def cont_movim_legales(juega, color):
     cuenta_movim = 0
     for _ in movimientos_legales(juega, color):
