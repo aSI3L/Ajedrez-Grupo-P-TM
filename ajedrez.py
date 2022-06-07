@@ -4,7 +4,7 @@
 # ========== JUEGO ==========
 
 class Juega:
-	#funcion donde se instancia el talero Y MOVIMIENTOS
+	#Funcion donde se instancia el talero y los movimientos
     def __init__(self, FEN=''):
         self.tablero = TABLERO_INICIO
         self.mueve_prim = BLANCO
@@ -21,10 +21,12 @@ class Juega:
             self.posicion_historial.append(INICIAL_FEN)
             
         self.movimientos_historial = []
-   #FUNCION QUE RETORNA LOS MOVIMIENTOS
+
+   #Funcion que retorna los movimientos
     def get_mov_list(self):
         return ' '.join(self.movimientos_historial)
-    #FUNCION QUE TRABAJA CON EL RANGO DE MOVIEMIENTOS DE LAS FICHAS (ZONA VERTICAL DEL TABLERO)
+
+    #Funcion que trabaja con el rango de movimientos de las fichas (zona vertical del tablero)
     def to_FEN(self):
         FEN_str = ''
 
@@ -70,8 +72,9 @@ class Juega:
         FEN_str += ' {}'.format(self.halfmove_clock)
         FEN_str += ' {}'.format(self.fullmove_number)
         return FEN_str
-    # funcion que separa y ordena las piezas del tablero(Blancas y Negras ) en una especie de Lista o cadena separadas
-    # una de otra instanciado los objetos que seran invocados para utilizar el metodo 
+
+    #Funcion que separa y ordena las piezas del tablero (Blancas y Negras) en una especie de lista o cadena separadas
+    #una de otra instanciado los objetos que seran invocados para utilizar el metodo
     def load_FEN(self, FEN_str):
         FEN_list = FEN_str.split(' ')
         
@@ -116,9 +119,7 @@ class Juega:
         self.halfmove_clock = int(FEN_list[4])
         self.fullmove_number = int(FEN_list[5])
 
-
-
-#==========FUNCIONES==========
+# ========== FUNCIONES ==========
 
 #Se asigna un índice a los bits disponibles para el tablero
 def get_pieza(tablero, bitboard):
@@ -408,7 +409,7 @@ def get_filtro(filtro_str):
     if filtro_str in RANGOS:
         return get_rango(filtro_str)
 
-# ========== PIEZAS ========
+# ==================== PIEZAS ====================
 
 # ========== PEON ==========
 
@@ -643,8 +644,6 @@ def linea_SO(moviendo_pieza):
         linea_atq |= lado_SO(linea_atq)
     return linea_atq & CASILLEROS
 
-
-
 def ataca_NE(pieza_indiv, tablero, color):
     bloq = lsb(linea_NE(pieza_indiv) & ocupado_casilleros(tablero))
     if bloq:
@@ -688,23 +687,112 @@ def alfil_ataca(moviendo_pieza, tablero, color):
 def alfil_movimientos(moviendo_pieza, tablero, color):
     return alfil_ataca(moviendo_pieza, tablero, color) & nnot(get_piezas_color(tablero, color))
 
+#========== TORRE ==========
 
+def get_torres(board, color):
+    return list2int([ i == color|TORRE for i in tablero ])
 
-#Torre
+def torre_lineas(moviendo_pieza):
+    return rango_lineas(moviendo_pieza) | fila_lineas(moviendo_pieza)
 
+def rango_lineas(moviendo_pieza):
+    return linea_este(moviendo_pieza) | linea_oeste(moviendo_pieza)
 
-#Reina
+def fila_lineas(moviendo_pieza):
+    return linea_norte(moviendo_pieza) | linea_sur(moviendo_pieza)
 
+def linea_este(moviendo_pieza):
+    linea_atq = lado_este(moviendo_pieza)
+    for _ in range(6):
+        linea_atq |= lado_este(linea_atq)
+    return linea_atq & CASILLEROS
 
-#Funciones, Ataques, Evaluaciones
+def linea_oeste(moviendo_pieza):
+    linea_atq = lado_oeste(moviendo_pieza)
+    for _ in range(6):
+        linea_atq |= lado_oeste(linea_atq)
+    return linea_atq & CASILLEROS
 
-#define situacion de ataque segun color c/contador
+def linea_norte(moviendo_pieza):
+    linea_atq = lado_norte(moviendo_pieza)
+    for _ in range(6):
+        linea_atq |= lado_norte(linea_atq)
+    return linea_atq & CASILLEROS
+
+def linea_sur(moviendo_pieza):
+    linea_atq = lado_sur(moviendo_pieza)
+    for _ in range(6):
+        linea_atq |= lado_sur(linea_atq)
+    return linea_atq & CASILLEROS
+
+def ataca_este(pieza_indiv, tablero, color):
+    bloq = lsb(linea_este(pieza_indiv) & ocupado_casilleros(tablero))
+    if bloq:
+        return linea_este(pieza_indiv) ^ linea_este(bloq)
+    else:
+        return linea_este(pieza_indiv)
+    
+def ataca_oeste(pieza_indiv, tablero, color):
+    bloq = msb(linea_oeste(pieza_indiv) & ocupado_casilleros(tablero))
+    if bloq:
+        return linea_oeste(pieza_indiv) ^ linea_oeste(bloq)
+    else:
+        return linea_oeste(pieza_indiv)
+
+def rango_ataca(pieza_indiv, tablero, color):
+    return ataca_este(pieza_indiv, tablero, color) | ataca_oeste(pieza_indiv, tablero, color)
+
+def ataca_norte(pieza_indiv, tablero, color):
+    bloq = lsb(linea_norte(pieza_indiv) & ocupado_casilleros(tablero))
+    if bloq:
+        return linea_norte(pieza_indiv) ^ linea_norte(bloq)
+    else:
+        return linea_norte(pieza_indiv)
+    
+def ataca_sur(pieza_indiv, tablero, color):
+    bloq = msb(linea_sur(pieza_indiv) & ocupado_casilleros(tablero))
+    if bloq:
+        return linea_sur(pieza_indiv) ^ linea_sur(bloq)
+    else:
+        return linea_sur(pieza_indiv)
+
+def fila_ataca(pieza_indiv, tablero, color):
+    return ataca_norte(pieza_indiv, tablero, color) | ataca_sur(pieza_indiv, tablero, color)
+
+def torre_ataca(moviendo_pieza, tablero, color):
+    atq = 0
+    for pieza_indiv in indiv_gen(moviendo_pieza):
+        atq |= rango_ataca(pieza_indiv, tablero, color) | fila_ataca(pieza_indiv, tablero, color)
+    return atq
+
+def torre_movimientos(moviendo_pieza, tablero, color):
+    return torre_ataca(moviendo_pieza, tablero, color) & nnot(get_piezas_color(tablero, color))
+
+# ========== REINA ==========
+
+def get_queen(tablero, color):
+    return list2int([ i == color|QUEEN for i in tablero ])
+
+def queen_lineas(moviendo_pieza):
+    return torre_lineas(moviendo_pieza) | alfil_linea(moviendo_pieza)
+
+def queen_ataca(moviendo_pieza, tablero, color):
+    return alfil_ataca(moviendo_pieza, tablero, color) | torre_ataca(moviendo_pieza, tablero, color)
+
+def queen_movimientos(moviendo_pieza, tablero, color):
+    return alfil_movimientos(moviendo_pieza, tablero, color) | torre_movimientos(moviendo_pieza, tablero, color)
+
+# ========== FUNCIONES, ATAQUES, EVALUACIONES ==========
+
+#Define situacion de ataque segun color c/contador
 def bajo_ataque(objetivo, tablero, atacando_color):
     return cuenta_ataques(objetivo, tablero, atacando_color) > 0
-#define situacion de jaque cuando rey esta bajo ataque
+
+#Define situacion de jaque cuando rey esta bajo ataque
 def jaque(tablero, color):
     return bajo_ataque(get_king(tablero, color), tablero, opuesto_color(color))
-#retornamos la pieza, pieza y color que ataca
+
+#Retorna la pieza y color que ataca
 def get_ataques(moviendo_pieza, tablero, color):
     pieza = tablero[bb2index(moviendo_pieza)]
 
@@ -720,7 +808,8 @@ def get_ataques(moviendo_pieza, tablero, color):
         return queen_ataca(moviendo_pieza, tablero, color)
     elif pieza&PIEZA_MASK == KING:
         return king_ataca(moviendo_pieza)
-#define el movimiento de piezas con el tipo de pieza
+
+#Define el movimiento de piezas con el tipo de pieza
 def get_movimientos(moviendo_pieza, juega, color):
     pieza = juega.tablero[bb2index(moviendo_pieza)]
 
@@ -736,7 +825,8 @@ def get_movimientos(moviendo_pieza, juega, color):
         return queen_movimientos(moviendo_pieza, juega.tablero, color)
     elif pieza&PIEZA_MASK == KING:
         return king_movimientos(moviendo_pieza, juega.tablero, color)
-#contador de ataques segun el color
+
+#Contador de ataques segun el color
 def cuenta_ataques(objetivo, tablero, atacando_color):
     ataque_contador = 0
 
@@ -749,26 +839,31 @@ def cuenta_ataques(objetivo, tablero, atacando_color):
                 ataque_contador += 1
                       
     return ataque_contador
-#cuenta el material en tablero
+
+#Cuenta el material en tablero
 def material_sumat(tablero, color):
     material = 0
     for pieza in tablero:
         if pieza&COLOR_MASK == color:
             material += PIEZA_VALOR[pieza&PIEZA_MASK]
     return material
-#evalua diferencia de material entre jugadores
+
+#Evalua diferencia de material entre jugadores
 def material_saldo(tablero):
     return material_sumat(tablero, BLANCO) - material_sumat(tablero, NEGRO)
-#evalua diferenccia de movimientos entre jugadores
+
+#Evalua diferenccia de movimientos entre jugadores
 def movimientos_saldo(juega):
     return cont_movim_legales(juega, BLANCO) - cont_movim_legales(juega, NEGRO)
-# evalua estado del juego
+
+#Evalua estado del juego
 def evalua_juego(juega):
     if finaliza_juego(juega):
         return evalua_final(juega)
     else:
         return material_saldo(juega.tablero) + saldo_posicion(juega)
-#evalua condicion de finalizacion
+
+#Evalua condicion de finalizacion
 def evalua_final(juega):
     if jaquemate(juega, juega.mueve_prim):
         return puntaje(juega.mueve_prim)
@@ -777,7 +872,7 @@ def evalua_final(juega):
          menos_75_movim_regla(juega):
         return 0
 
-#Puntajes
+# ========== PUNTAJES ==========
 
 def saldo_posicion(juega):
     return bonus_posicion(juega, BLANCO) - bonus_posicion(juega, NEGRO) 
@@ -824,28 +919,33 @@ def bonus_posicion(juega, color):
 
 def fin_del_juego(tablero):
     return cuenta_piezas(ocupado_casilleros(tablero)) <= FINJUEG_PIEZA_RESUL
-#open file: fila sin peones
+
+#Open file: fila sin peones
 def is_open_file(bitboard, tablero):
     for f in FILAS:
         rango_filtro = get_fila(f)
         if bitboard & rango_filtro:
             return cuenta_piezas(get_peones_total(tablero)&rango_filtro) == 0
-#semi open file: fila con peones de un solo color
+
+#Semi open file: fila con peones de un solo color
 def is_semi_open_file(bitboard, tablero):
     for f in FILAS:
         rango_filtro = get_fila(f)
         if bitboard & rango_filtro:
             return cuenta_piezas(get_peones_total(tablero)&rango_filtro) == 1
-#cuenta espacios ocupados en el tablero de bits
+
+#Cuenta espacios ocupados en el tablero de bits
 def cuenta_piezas(bitboard):
     return bin(bitboard).count("1")
-#evalua puntaje por color
+
+#Evalua puntaje por color
 def puntaje(color):
     if color == BLANCO:
         return -10*PIEZA_VALOR[KING]
     if color == NEGRO:
         return 10*PIEZA_VALOR[KING]
-#movimientos que no tienen en cuenta las demas piezas
+
+#Movimientos que no tienen en cuenta las demas piezas
 def movim_pseudo_legales(juega, color):
     for index in range(64):
         pieza = juega.tablero[index]
@@ -860,16 +960,19 @@ def movim_pseudo_legales(juega, color):
         yield (get_king(juega.tablero, color), lado_este(lado_este(get_king(juega.tablero, color))))
     if puede_enrocar_queenside(juega, color):
         yield (get_king(juega.tablero, color), lado_oeste(lado_oeste(get_king(juega.tablero, color))))
-#movimientos permitidos
+
+#Movimientos permitidos
 def movimientos_legales(juega, color):
     for movim in movim_pseudo_legales(juega, color):
         if movim_legal(juega, movim):
             yield movim
-#movimientos que no dejan al propio rey en jaque
+
+#Movimientos que no dejan al propio rey en jaque
 def movim_legal(juega, movim):
     new_juega = mueve(juega, movim)
     return not jaque(new_juega.tablero, juega.mueve_prim)
-#contador de movimientos permitidos
+
+#Contador de movimientos permitidos
 def cont_movim_legales(juega, color):
     cuenta_movim = 0
     for _ in movimientos_legales(juega, color):
@@ -896,8 +999,320 @@ def misma_posicion(FEN_a, FEN_b):
 
 #Reglas
 
+#Si la misma posicion ocurre 3 veces -> tablas
+def triple_repeticion(juega):
+    posicion_actual = juega.posicion_historial[-1]
+    cuenta_posicion = 0
+    for posicion in juega.posicion_historial:
+        if misma_posicion(posicion_actual, posicion):
+            cuenta_posicion += 1
+    return cuenta_posicion >= 3
+#si luego de 50 movimientos no se producen capturas -> tablas
+def menos_50_movim_regla(juega):
+    return juega.halfmove_clock >= 100
+#si no hay capturas en 75 movimientos -> tablas
+def menos_75_movim_regla(juega):
+    return juega.halfmove_clock >= 150
+#EVALUA LAS 4 COMBINACIONES PARA QUE SE DE UN EMPATE POR MATERIAL INSUFICIENTE (MATERIALES SON LAS PIEZAS 
+#EN EL TABLERO), LA REGLA TIENE EN CUENTA ALFILES, CABALLOS Y REY
+def material_insuficiente(juega):
+    if material_sumat(juega.tablero, BLANCO) + material_sumat(juega.tablero, NEGRO) == 2*PIEZA_VALOR[KING]:
+        return True
+    if material_sumat(juega.tablero, BLANCO) == PIEZA_VALOR[KING]:
+        if material_sumat(juega.tablero, NEGRO) == PIEZA_VALOR[KING] + PIEZA_VALOR[CABALLO] and \
+        (get_caballos(juega.tablero, NEGRO) != 0 or get_alfiles(game.tablero, NEGRO) != 0):
+            return True
+    if material_sumat(juega.tablero, NEGRO) == PIEZA_VALOR[KING]:
+        if material_sumat(juega.tablero, BLANCO) == PIEZA_VALOR[KING] + PIEZA_VALOR[CABALLO] and \
+        (get_caballos(juega.tablero, BLANCO) != 0 or get_alfiles(juega.tablero, BLANCO) != 0):
+            return True
+    return False #DEVUELVE FALSO SI NO SE DA LA CONDICION
+
+#devuelve la condicion del juego terminado
+def finaliza_juego(juega):
+    return jaquemate(juega, BLANCO) or \
+           jaquemate(juega, NEGRO) or \
+           juego_ahogado(juega) or \
+           material_insuficiente(juega) or \
+           menos_75_movim_regla(juega)
+
+def movim_aleat(juega, color):
+    return choice(movim_legal(juega, color))
+#evalua puntajes y guarda los mayores
+def movim_evaluado(juega, color):
+    mejor_puntaje = puntaje(color)
+    mejor_movimientos = []
+    
+    for movim in movimientos_legales(juega, color):
+        evalua = evalua_juego(mueve(juega, movim))
+        
+        if jaquemate(mueve(juega, movim), opuesto_color(juega.mueve_prim)):
+            return [movim, evalua]
+        
+        if (color == BLANCO and evalua > mejor_puntaje) or \
+           (color == NEGRO  and evalua < mejor_puntaje):
+            mejor_puntaje = evalua
+            mejor_movimientos = [movim]
+        elif evalua == mejor_puntaje:
+            mejor_movimientos.append(movim)
+                
+    return [choice(mejor_movimientos), mejor_puntaje]
 
 #Evaluaciones de Movimientos / Árbol Binario
+#genera arbol binario de movimientos optimos 
+def minimax(juega, color, profund=1):
+    if finaliza_juego(juega):
+        return [None, evalua_juego(juega)]
+    
+    [movim_simple, evaluacion_simple] = movim_evaluado(juega, color)
+    
+    if profund == 1 or \
+       evaluacion_simple == puntaje(opuesto_color(color)):
+        return [movim_simple, evaluacion_simple]
+    
+    mejor_puntaje = puntaje(color)
+    mejor_movimientos = []
+    
+    for movim in movim_legal(juega, color):
+        su_juego = mueve(juega, movim)
+        
+        if jaquemate(su_juego, su_juego.mueve_prim):
+            return [movim, puntaje(su_juego.mueve_prim)]
+            
+        [_, evalua] = minimax(su_juego, opuesto_color(color), profund-1)
+        
+        if evalua == puntaje(opuesto_color(color)):
+            return [movim, evalua]
+        
+        if (color == BLANCO and evalua > mejor_puntaje) or \
+           (color == NEGRO and evalua < mejor_puntaje):
+            mejor_puntaje = evalua
+            mejor_movimientos = [movim]
+        elif evalua == mejor_puntaje:
+            mejor_movimientos.append(movim)
+        
+    return [choice(mejor_movimientos), mejor_puntaje]
+#"poda" los subarboles de minimax que considera que NO seran seleccionados
+def alpha_beta(juega, color, profund, alpha=-float('inf'), beta=float('inf')):
+    if finaliza_juego(juega):
+        return [None, evalua_juego(juega)]
+    
+    [movim_simple, evaluacion_simple] = movim_evaluado(juega, color)
+    
+    if profund == 1 or \
+       evaluacion_simple == puntaje(opuesto_color(color)):
+        return [movim_simple, evaluacion_simple]
+
+    mejor_movimientos = []
+        
+    if color == BLANCO:
+        for movim in movimientos_legales(juega, color):
+            if verbose:
+                print('\t'*profund + str(profund) + '. evaluando ' + PIEZA_CODIG[get_pieza(juega.tablero, movim[0])] + movim2str(movim))
+                
+            new_juega = mueve(juega, movim)
+            [_, puntos] = alpha_beta(new_juega, opuesto_color(color), profund-1, alpha, beta)
+            
+            if verbose:
+                print('\t'*profund + str(profund) + '. ' + str(puntos) + ' [{},{}]'.format(alpha, beta))
+            
+            if puntos == puntaje(opuesto_color(color)):
+                return [movim, puntos]
+            
+            if puntos == alpha:
+                mejor_movimientos.append(movim)
+            if puntos > alpha: # blanco maximiza puntaje
+                alpha = puntos
+                mejor_movimientos = [movim]
+                if alpha > beta: # poda alpha-beta 
+                    if verbose:
+                        print('\t'*profund + 'poda')
+                    break
+        if mejor_movimientos:
+            return [choice(mejor_movimientos), alpha]
+        else:
+            return [None, alpha]
+    
+    if color == NEGRO:
+        for movim in movimientos_legales(juega, color):
+            if verbose:
+                print('\t'*profund + str(profund) + '. evaluando ' + PIEZA_CODIG[get_pieza(juega.tablero, movim[0])] + movim2str(movim))
+                
+            new_juega = mueve(juega, movim)
+            [_, puntos] = alpha_beta(new_juega, opuesto_color(color), profund-1, alpha, beta)
+            
+            if verbose:
+                print('\t'*profund + str(profund) + '. ' + str(puntos) + ' [{},{}]'.format(alpha, beta))
+            
+            if puntos == puntaje(opuesto_color(color)):
+                return [movim, puntos]
+            
+            if puntos == beta:
+                mejor_movimientos.append(movim)
+            if puntos < beta: # negro minimiza puntaje
+                beta = puntos
+                mejor_movimientos = [movim]
+                if alpha > beta: # poda alpha-beta
+                    if verbose:
+                        print('\t'*profund + 'poda')
+                    break
+        if mejor_movimientos:
+            return [choice(mejor_movimientos), beta]
+        else:
+            return [None, beta]
+#evalua condiciones para hacer el movimiento
+def analiza_codig_movim(juega, movim_codigo):
+    movim_codigo = movim_codigo.replace(" ","")
+    movim_codigo = movim_codigo.replace("x","")
+
+    if movim_codigo.upper() == 'O-O' or movim_codigo == '0-0':
+        if puede_enrocar_kingside(juega, juega.mueve_prim):
+            return enrocar_kingside_movim(juega)
+        
+    if movim_codigo.upper() == 'O-O-O' or movim_codigo == '0-0-0':
+        if puede_enrocar_queenside(juega, juega.mueve_prim):
+            return enrocar_queenside_movim(juega)
+
+    if len(movim_codigo) < 2 or len(movim_codigo) > 4:
+        return False
+    
+    if len(movim_codigo) == 4:
+        filtra_casilleros = get_filtro(movim_codigo[1])
+    else:
+        filtra_casilleros = CASILLEROS
+
+    destino_str = movim_codigo[-2:]
+    if destino_str[0] in FILAS and destino_str[1] in RANGOS:
+        casill_objetivo = str2bb(destino_str)
+    else:
+        return False
+
+    if len(movim_codigo) == 2:
+        pieza = PEON
+    else:
+        pieza_codig = movim_codigo[0]
+        if pieza_codig in FILAS:
+            pieza = PEON
+            filtra_casilleros = get_filtro(pieza_codig)
+        elif pieza_codig in PIEZA_CODIG:
+            pieza = PIEZA_CODIG[pieza_codig]&PIEZA_MASK
+        else:
+            return False
+
+    movim_validos = []
+    for movim in movim_legal(juega, juega.mueve_prim):
+        if movim[1] & casill_objetivo and \
+           movim[0] & filtra_casilleros and \
+           get_pieza(juega.tablero, movim[0])&PIEZA_MASK == pieza:
+            movim_validos.append(movim) 
+
+    if len(movim_validos) == 1:
+        return movim_validos[0]
+    else:
+        return False
+#obtiene y evalua el movimiento del usuario
+def get_movim_usuario(juega):
+    movim = None
+    while not movim:
+        movim = analiza_codig_movim(juega, input())
+        if not movim:
+            print('Movimiento No Váido!!!')
+    return movim
+#obtiene y evalua el movimiento de la AI
+def get_AI_movim(juega, profund=2):
+    if verbose:
+        print('Blanco analizando mejor jugada...' if juega.mueve_prim == BLANCO else 'Negro analizando mejor jugada...')
+    start_time = time()
+
+    if busca_en_libro(juega):
+        movim = get_movim_libro(juega)  #movimiento de libro ("book.txt")
+    else:
+        movim = alpha_beta(juega, juega.mueve_prim, profund)[0]
+
+    end_time = time()
+    if verbose:
+        print('Movimiento encontrado ' + PIEZA_CODIG[get_pieza(juega.tablero, movim[0])] + ' desde ' + str(bb2str(movim[0])) + ' hasta ' + str(bb2str(movim[1])) + ' en {:.3f} segundos'.format(end_time-start_time) + ' ({},{})'.format(evalua_juego(juega), evalua_juego(mueve(juega, movim))))
+    return movim    #retorna el movimiento y detiene el reloj
+#imprime salida por pantalla
+def print_salida(juega):
+    print(get_salida(juega))
+
+#obtiene salida
+def get_salida(juega):
+    if juego_ahogado(juega):
+        return 'Empate por Juego Ahogado'
+    if jaquemate(juega, BLANCO):
+        return '=== NEGRAS GANAN!!!! ==='
+    if jaquemate(juega, NEGRO):
+        return '=== BLANCAS GANAN!!!! ==='
+    if material_insuficiente(juega):
+        return 'Empate por piezas insuficientes!!!'
+    if menos_75_movim_regla(juega):
+        return 'Empate por regla de los 75 movimientos!!!'
+
+# ========== MODOS DE JUEGO ==========
+
+def juega_con_blancas(juega=Juega()):
+    print('Jugador: BLANCAS!')
+    while True:
+        print_tablero(juega.tablero)
+        if finaliza_juego(juega):
+            break
+
+        juega = mueve_prim(juega, get_movim_usuario(juega))
+        
+        print_tablero(juega.tablero)
+        if finaliza_juego(juega):
+            break
+        
+        juega = mueve_prim(juega, get_AI_movim(juega))
+    print_salida(juega)
+
+def juega_con_negras(juega=Juega()):
+    print('Jugador: NEGRAS!')
+    while True:
+        print_rotar_tablero(juega.tablero)
+        if finaliza_juego(juega):
+            break
+
+        juega = mueve(juega, get_AI_movim(juega))
+        
+        print_rotar_tablero(juega.tablero)
+        if finaliza_juego(juega):
+            break
+        
+        juega = mueve(juega, get_movim_usuario(juega))
+    print_salida(juega)
 
 
-#Modos de Juego
+def juega_con(color):
+    if color == BLANCO:
+        juega_con_blancas()
+    if color == NEGRO:
+        juega_con_negras()
+
+def juega_con_aleatorio():
+    color = choice([BLANCO, NEGRO])
+    juega_con(color)
+
+# ========== FICHERO ==========
+
+def busca_en_libro(juega):
+    if juega.posicion_historial[0] != INICIAL_FEN:
+        return False
+
+    fichero = []
+    fichero_libro = open("libro.txt")
+    for line in fichero_libro:
+        if line.startswith(juega.get_mov_list()) and line.rstrip() > juega.get_mov_list():
+            fichero.append(line.rstrip())
+    fichero_libro.close()
+    return fichero
+
+def get_movim_libro(juega):
+    fichero = busca_en_libro(juega)
+    opc_fichero = choice(fichero)
+    movim_siguientes = opc_fichero.replace(juega.get_mov_list(), '').lstrip()
+    movim_str = movim_siguientes.split(' ')[0]
+    movim = [str2bb(movim_str[:2]), str2bb(movim_str[-2:])]
+    return movim
