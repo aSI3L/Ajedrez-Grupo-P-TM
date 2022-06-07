@@ -201,14 +201,14 @@ def juega_con(juega, color):
                         print(juega.get_mov_list() + '\n')
                         print('\n'.join(juega.posicion_historial))
                     if event.key == 101: 	#Tecla E - Evalua puntaje del juego
-                        print('puntaje actual = ' + str(ajedrez.evalua_juego(juega)/100))
+                        print('Puntaje actual = ' + str(ajedrez.evalua_juego(juega)/100))
 
     except:
         print(format_exc(), file=stderr)
         bug_file.write('ERROR!')
         bug_file.write('----- ' + strftime('%x %X') + ' -----\n')
         bug_file.write(format_exc())
-        bug_file.write('\nJugando con BLANCO:\n\t' if color == ajedrez.BLANCO else '\nJuegando con NEGRO:\n\t')
+        bug_file.write('\nJugando con BLANCO:\n\t' if color == ajedrez.BLANCO else '\nJugando con NEGRO:\n\t')
         bug_file.close()
 
 def juega_con_blancas(juega=ajedrez.Juega()):
