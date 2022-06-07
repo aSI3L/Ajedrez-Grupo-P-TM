@@ -1003,4 +1003,69 @@ def misma_posicion(FEN_a, FEN_b):
 #Evaluaciones de Movimientos / Árbol Binario
 
 
-#Modos de Juego
+# ========== MODOS DE JUEGO ==========
+
+def juega_con_blancas(juega=Juega()):
+    print('Jugador: BLANCAS!')
+    while True:
+        print_tablero(juega.tablero)
+        if finaliza_juego(juega):
+            break
+
+        juega = mueve_prim(juega, get_movim_usuario(juega))
+        
+        print_tablero(juega.tablero)
+        if finaliza_juego(juega):
+            break
+        
+        juega = mueve_prim(juega, get_AI_movim(juega))
+    print_salida(juega)
+
+def juega_con_negras(juega=Juega()):
+    print('Jugador: NEGRAS!')
+    while True:
+        print_rotar_tablero(juega.tablero)
+        if finaliza_juego(juega):
+            break
+
+        juega = mueve(juega, get_AI_movim(juega))
+        
+        print_rotar_tablero(juega.tablero)
+        if finaliza_juego(juega):
+            break
+        
+        juega = mueve(juega, get_movim_usuario(juega))
+    print_salida(juega)
+
+
+def juega_con(color):
+    if color == BLANCO:
+        juega_con_blancas()
+    if color == NEGRO:
+        juega_con_negras()
+
+def juega_con_aleatorio():
+    color = choice([BLANCO, NEGRO])
+    juega_con(color)
+
+# ========== FICHERO ==========
+
+def busca_en_libro(juega):
+    if juega.posicion_historial[0] != INICIAL_FEN:
+        return False
+
+    fichero = []
+    fichero_libro = open("libro.txt")
+    for line in fichero_libro:
+        if line.startswith(juega.get_mov_list()) and line.rstrip() > juega.get_mov_list():
+            fichero.append(line.rstrip())
+    fichero_libro.close()
+    return fichero
+
+def get_movim_libro(juega):
+    fichero = busca_en_libro(juega)
+    opc_fichero = choice(fichero)
+    movim_siguientes = opc_fichero.replace(juega.get_mov_list(), '').lstrip()
+    movim_str = movim_siguientes.split(' ')[0]
+    movim = [str2bb(movim_str[:2]), str2bb(movim_str[-2:])]
+    return movim
