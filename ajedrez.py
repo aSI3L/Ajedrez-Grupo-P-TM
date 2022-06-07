@@ -999,9 +999,256 @@ def misma_posicion(FEN_a, FEN_b):
 
 #Reglas
 
+#Si la misma posicion ocurre 3 veces -> tablas
+def triple_repeticion(juega):
+    posicion_actual = juega.posicion_historial[-1]
+    cuenta_posicion = 0
+    for posicion in juega.posicion_historial:
+        if misma_posicion(posicion_actual, posicion):
+            cuenta_posicion += 1
+    return cuenta_posicion >= 3
+#si luego de 50 movimientos no se producen capturas -> tablas
+def menos_50_movim_regla(juega):
+    return juega.halfmove_clock >= 100
+#si no hay capturas en 75 movimientos -> tablas
+def menos_75_movim_regla(juega):
+    return juega.halfmove_clock >= 150
+#EVALUA LAS 4 COMBINACIONES PARA QUE SE DE UN EMPATE POR MATERIAL INSUFICIENTE (MATERIALES SON LAS PIEZAS 
+#EN EL TABLERO), LA REGLA TIENE EN CUENTA ALFILES, CABALLOS Y REY
+def material_insuficiente(juega):
+    if material_sumat(juega.tablero, BLANCO) + material_sumat(juega.tablero, NEGRO) == 2*PIEZA_VALOR[KING]:
+        return True
+    if material_sumat(juega.tablero, BLANCO) == PIEZA_VALOR[KING]:
+        if material_sumat(juega.tablero, NEGRO) == PIEZA_VALOR[KING] + PIEZA_VALOR[CABALLO] and \
+        (get_caballos(juega.tablero, NEGRO) != 0 or get_alfiles(game.tablero, NEGRO) != 0):
+            return True
+    if material_sumat(juega.tablero, NEGRO) == PIEZA_VALOR[KING]:
+        if material_sumat(juega.tablero, BLANCO) == PIEZA_VALOR[KING] + PIEZA_VALOR[CABALLO] and \
+        (get_caballos(juega.tablero, BLANCO) != 0 or get_alfiles(juega.tablero, BLANCO) != 0):
+            return True
+    return False #DEVUELVE FALSO SI NO SE DA LA CONDICION
+
+#devuelve la condicion del juego terminado
+def finaliza_juego(juega):
+    return jaquemate(juega, BLANCO) or \
+           jaquemate(juega, NEGRO) or \
+           juego_ahogado(juega) or \
+           material_insuficiente(juega) or \
+           menos_75_movim_regla(juega)
+
+def movim_aleat(juega, color):
+    return choice(movim_legal(juega, color))
+#evalua puntajes y guarda los mayores
+def movim_evaluado(juega, color):
+    mejor_puntaje = puntaje(color)
+    mejor_movimientos = []
+    
+    for movim in movimientos_legales(juega, color):
+        evalua = evalua_juego(mueve(juega, movim))
+        
+        if jaquemate(mueve(juega, movim), opuesto_color(juega.mueve_prim)):
+            return [movim, evalua]
+        
+        if (color == BLANCO and evalua > mejor_puntaje) or \
+           (color == NEGRO  and evalua < mejor_puntaje):
+            mejor_puntaje = evalua
+            mejor_movimientos = [movim]
+        elif evalua == mejor_puntaje:
+            mejor_movimientos.append(movim)
+                
+    return [choice(mejor_movimientos), mejor_puntaje]
 
 #Evaluaciones de Movimientos / Árbol Binario
+#genera arbol binario de movimientos optimos 
+def minimax(juega, color, profund=1):
+    if finaliza_juego(juega):
+        return [None, evalua_juego(juega)]
+    
+    [movim_simple, evaluacion_simple] = movim_evaluado(juega, color)
+    
+    if profund == 1 or \
+       evaluacion_simple == puntaje(opuesto_color(color)):
+        return [movim_simple, evaluacion_simple]
+    
+    mejor_puntaje = puntaje(color)
+    mejor_movimientos = []
+    
+    for movim in movim_legal(juega, color):
+        su_juego = mueve(juega, movim)
+        
+        if jaquemate(su_juego, su_juego.mueve_prim):
+            return [movim, puntaje(su_juego.mueve_prim)]
+            
+        [_, evalua] = minimax(su_juego, opuesto_color(color), profund-1)
+        
+        if evalua == puntaje(opuesto_color(color)):
+            return [movim, evalua]
+        
+        if (color == BLANCO and evalua > mejor_puntaje) or \
+           (color == NEGRO and evalua < mejor_puntaje):
+            mejor_puntaje = evalua
+            mejor_movimientos = [movim]
+        elif evalua == mejor_puntaje:
+            mejor_movimientos.append(movim)
+        
+    return [choice(mejor_movimientos), mejor_puntaje]
+#"poda" los subarboles de minimax que considera que NO seran seleccionados
+def alpha_beta(juega, color, profund, alpha=-float('inf'), beta=float('inf')):
+    if finaliza_juego(juega):
+        return [None, evalua_juego(juega)]
+    
+    [movim_simple, evaluacion_simple] = movim_evaluado(juega, color)
+    
+    if profund == 1 or \
+       evaluacion_simple == puntaje(opuesto_color(color)):
+        return [movim_simple, evaluacion_simple]
 
+    mejor_movimientos = []
+        
+    if color == BLANCO:
+        for movim in movimientos_legales(juega, color):
+            if verbose:
+                print('\t'*profund + str(profund) + '. evaluando ' + PIEZA_CODIG[get_pieza(juega.tablero, movim[0])] + movim2str(movim))
+                
+            new_juega = mueve(juega, movim)
+            [_, puntos] = alpha_beta(new_juega, opuesto_color(color), profund-1, alpha, beta)
+            
+            if verbose:
+                print('\t'*profund + str(profund) + '. ' + str(puntos) + ' [{},{}]'.format(alpha, beta))
+            
+            if puntos == puntaje(opuesto_color(color)):
+                return [movim, puntos]
+            
+            if puntos == alpha:
+                mejor_movimientos.append(movim)
+            if puntos > alpha: # blanco maximiza puntaje
+                alpha = puntos
+                mejor_movimientos = [movim]
+                if alpha > beta: # poda alpha-beta 
+                    if verbose:
+                        print('\t'*profund + 'poda')
+                    break
+        if mejor_movimientos:
+            return [choice(mejor_movimientos), alpha]
+        else:
+            return [None, alpha]
+    
+    if color == NEGRO:
+        for movim in movimientos_legales(juega, color):
+            if verbose:
+                print('\t'*profund + str(profund) + '. evaluando ' + PIEZA_CODIG[get_pieza(juega.tablero, movim[0])] + movim2str(movim))
+                
+            new_juega = mueve(juega, movim)
+            [_, puntos] = alpha_beta(new_juega, opuesto_color(color), profund-1, alpha, beta)
+            
+            if verbose:
+                print('\t'*profund + str(profund) + '. ' + str(puntos) + ' [{},{}]'.format(alpha, beta))
+            
+            if puntos == puntaje(opuesto_color(color)):
+                return [movim, puntos]
+            
+            if puntos == beta:
+                mejor_movimientos.append(movim)
+            if puntos < beta: # negro minimiza puntaje
+                beta = puntos
+                mejor_movimientos = [movim]
+                if alpha > beta: # poda alpha-beta
+                    if verbose:
+                        print('\t'*profund + 'poda')
+                    break
+        if mejor_movimientos:
+            return [choice(mejor_movimientos), beta]
+        else:
+            return [None, beta]
+#evalua condiciones para hacer el movimiento
+def analiza_codig_movim(juega, movim_codigo):
+    movim_codigo = movim_codigo.replace(" ","")
+    movim_codigo = movim_codigo.replace("x","")
+
+    if movim_codigo.upper() == 'O-O' or movim_codigo == '0-0':
+        if puede_enrocar_kingside(juega, juega.mueve_prim):
+            return enrocar_kingside_movim(juega)
+        
+    if movim_codigo.upper() == 'O-O-O' or movim_codigo == '0-0-0':
+        if puede_enrocar_queenside(juega, juega.mueve_prim):
+            return enrocar_queenside_movim(juega)
+
+    if len(movim_codigo) < 2 or len(movim_codigo) > 4:
+        return False
+    
+    if len(movim_codigo) == 4:
+        filtra_casilleros = get_filtro(movim_codigo[1])
+    else:
+        filtra_casilleros = CASILLEROS
+
+    destino_str = movim_codigo[-2:]
+    if destino_str[0] in FILAS and destino_str[1] in RANGOS:
+        casill_objetivo = str2bb(destino_str)
+    else:
+        return False
+
+    if len(movim_codigo) == 2:
+        pieza = PEON
+    else:
+        pieza_codig = movim_codigo[0]
+        if pieza_codig in FILAS:
+            pieza = PEON
+            filtra_casilleros = get_filtro(pieza_codig)
+        elif pieza_codig in PIEZA_CODIG:
+            pieza = PIEZA_CODIG[pieza_codig]&PIEZA_MASK
+        else:
+            return False
+
+    movim_validos = []
+    for movim in movim_legal(juega, juega.mueve_prim):
+        if movim[1] & casill_objetivo and \
+           movim[0] & filtra_casilleros and \
+           get_pieza(juega.tablero, movim[0])&PIEZA_MASK == pieza:
+            movim_validos.append(movim) 
+
+    if len(movim_validos) == 1:
+        return movim_validos[0]
+    else:
+        return False
+#obtiene y evalua el movimiento del usuario
+def get_movim_usuario(juega):
+    movim = None
+    while not movim:
+        movim = analiza_codig_movim(juega, input())
+        if not movim:
+            print('Movimiento No Váido!!!')
+    return movim
+#obtiene y evalua el movimiento de la AI
+def get_AI_movim(juega, profund=2):
+    if verbose:
+        print('Blanco analizando mejor jugada...' if juega.mueve_prim == BLANCO else 'Negro analizando mejor jugada...')
+    start_time = time()
+
+    if busca_en_libro(juega):
+        movim = get_movim_libro(juega)  #movimiento de libro ("book.txt")
+    else:
+        movim = alpha_beta(juega, juega.mueve_prim, profund)[0]
+
+    end_time = time()
+    if verbose:
+        print('Movimiento encontrado ' + PIEZA_CODIG[get_pieza(juega.tablero, movim[0])] + ' desde ' + str(bb2str(movim[0])) + ' hasta ' + str(bb2str(movim[1])) + ' en {:.3f} segundos'.format(end_time-start_time) + ' ({},{})'.format(evalua_juego(juega), evalua_juego(mueve(juega, movim))))
+    return movim    #retorna el movimiento y detiene el reloj
+#imprime salida por pantalla
+def print_salida(juega):
+    print(get_salida(juega))
+
+#obtiene salida
+def get_salida(juega):
+    if juego_ahogado(juega):
+        return 'Empate por Juego Ahogado'
+    if jaquemate(juega, BLANCO):
+        return '=== NEGRAS GANAN!!!! ==='
+    if jaquemate(juega, NEGRO):
+        return '=== BLANCAS GANAN!!!! ==='
+    if material_insuficiente(juega):
+        return 'Empate por piezas insuficientes!!!'
+    if menos_75_movim_regla(juega):
+        return 'Empate por regla de los 75 movimientos!!!'
 
 # ========== MODOS DE JUEGO ==========
 
