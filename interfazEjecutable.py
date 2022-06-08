@@ -44,12 +44,12 @@ RELOJ_TICK = 15
 #Se le dan las dimesiones al tablero (8x8) para que este parejo
 #Se crea una variable string que lleva el titulo de la ventana
 VENTANA = pygame.display.set_mode((8*CASILLERO_TAM, 8*CASILLERO_TAM))
-VENTANA_TITULO = 'AJEDREZ - METODOLOGÍA 2022'
+TITULO_VENTANA = "AJEDREZ - METODOLOGiA 2022"
 
 #Se coloca el icono del juego para la ventana de visualización con image.load
 #Se coloca el título de la ventana actual usando pygame.set_caption()
 pygame.display.set_icon(pygame.image.load('imagenes/icono.ico'))
-pygame.display.set_caption(VENTANA_TITULO)
+pygame.display.set_caption(TITULO_VENTANA)
 
 #Se imprime el tablero vacio
 #Se le da color a las casillas claras y oscuras
@@ -136,9 +136,9 @@ def set_titulo(titulo):
     pygame.display.flip() #Actualiza el contenido de la ventana
 
 def hacer_AI_movim(juega, color):
-    set_titulo(VENTANA_TITULO + ' - Analizando movimiento...') #Al jugar la IA, añade el string a la cabecera de la ventana
+    set_titulo(TITULO_VENTANA + ' - Analizando movimiento...') #Al jugar la IA, añade el string a la cabecera de la ventana
     new_juega = ajedrez.mueve(juega, ajedrez.get_AI_movim(juega, AI_BUSCA_PROFUND))
-    set_titulo(VENTANA_TITULO)
+    set_titulo(TITULO_VENTANA)
     print_tablero(new_juega.tablero, color)
     return new_juega
 
@@ -161,14 +161,14 @@ def juega_con(juega, color):
 
             #Imprime salida de pantalla al finalizar juego y detiene su ejecucion
             if ajedrez.finaliza_juego(juega):
-                set_titulo(VENTANA_TITULO + ' - ' + ajedrez.get_salida(juega))
+                set_titulo(TITULO_VENTANA + ' - ' + ajedrez.get_salida(juega))
                 ongoing = False
 
             if ongoing and juega.mueve_prim == ajedrez.opuesto_color(color):
                 juega = hacer_AI_movim(juega, color)
             
             if ajedrez.finaliza_juego(juega):
-                set_titulo(VENTANA_TITULO + ' - ' + ajedrez.get_salida(juega))
+                set_titulo(TITULO_VENTANA + ' - ' + ajedrez.get_salida(juega))
                 ongoing = False
 
             for event in pygame.event.get(): #Salir del juego
@@ -194,7 +194,7 @@ def juega_con(juega, color):
                     if event.key == 100: 					#Tecla D - Deshacer jugada
                         juega = ajedrez.deshace_movim(juega)
                         juega = ajedrez.deshace_movim(juega)
-                        set_titulo(VENTANA_TITULO)
+                        set_titulo(TITULO_VENTANA)
                         print_tablero(juega.tablero, color)
                         ongoing = True
                     if event.key == 112: #Tecla P - Historial de Posiciones
