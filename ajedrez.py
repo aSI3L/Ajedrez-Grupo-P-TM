@@ -1,14 +1,14 @@
-#Inicialización
-
+# ========== INICIALIZACIÓN ==========
 from copy import deepcopy
 from random import choice
 from time import sleep, time
 
-#mascara de colores donde se ubican  las piezas (Blanco y Negro)
+#Mascara de colores donde se ubican  las piezas (Blanco y Negro)
 COLOR_MASK = 1 << 3
 BLANCO = 0 << 3
 NEGRO = 1 << 3
-#Total  tipos de piezas disponibles ordenas segun su importancia en el juego(de peones a rey )
+
+#Total de tipos de piezas disponibles ordenas segun su importancia en el juego (de peones a rey)
 FINJUEG_PIEZA_RESUL = 7
 
 PIEZA_MASK = 0b111
@@ -19,11 +19,14 @@ ALFIL   = 3
 TORRE   = 4
 QUEEN   = 5
 KING    = 6
-#tipo de piezas disponibles
+
+#Tipo de piezas disponibles
 PIEZA_TIPOS = [ PEON, CABALLO, ALFIL, TORRE, QUEEN, KING ]
-#valor de las piezas
+
+#Valor de las piezas
 PIEZA_VALOR = { VACIO:0, PEON:100, CABALLO:300, ALFIL:300, TORRE:500, QUEEN:900, KING:42000 }
-#ELEMENTOS FILAS(HORIZONTALES) , ELEMENTOS RANGO(VERTICAL)
+
+#Elementos FILAS (HORIZONTALES) , Elementos RANGO (VERTICAL)
 FILAS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
 RANGOS = ['1', '2', '3', '4', '5', '6', '7', '8']
 
@@ -31,9 +34,11 @@ ENROCAR_KINGSIDE_BLANCO  = 0b1 << 0
 ENROCAR_QUEENSIDE_BLANCO = 0b1 << 1
 ENROCAR_KINGSIDE_NEGRO   = 0b1 << 2
 ENROCAR_QUEENSIDE_NEGRO  = 0b1 << 3
-#TOTAL DE CASTILLOS DISPONIBLES EN EL TABLERO
+
+#Total de castillos disponibles en el tablero
 FULL_ENROQUE_REGLAS = ENROCAR_KINGSIDE_BLANCO|ENROCAR_QUEENSIDE_BLANCO|ENROCAR_KINGSIDE_NEGRO|ENROCAR_QUEENSIDE_NEGRO
-#POSICION , NUMERO DE RANGO (PERTENECIENTE A CADA ELEMENTO DE LAS FILAS ) 
+
+#Posicion , Nro. de Rango (Perteneciente a cada elemento de las filas) 
 CASILLEROS        = 0xFFFFFFFFFFFFFFFF
 FILA_A            = 0x0101010101010101
 FILA_B            = 0x0202020202020202
@@ -55,11 +60,14 @@ DIAG_A1H8         = 0x8040201008040201
 DIAG_INV_H1A8     = 0x0102040810204080
 CASILL_CLAROS     = 0x55AA55AA55AA55AA
 CASILL_OSCUROS    = 0xAA55AA55AA55AA55
-#filas ordenadas por letras segun su posicion(FILA_A=primera Fila...)
+
+#Filas ordenadas por letras segun su posicion (FILA_A = primera Fila...)
 FILA_MASK  = [FILA_A, FILA_B, FILA_C, FILA_D, FILA_E, FILA_F, FILA_G, FILA_H]
+
 #Rangos ordenados por numero segun su posicion
 RANGO_MASK = [RANGO_1, RANGO_2, RANGO_3, RANGO_4, RANGO_5, RANGO_6, RANGO_7, RANGO_8]
-#ORGANIZACION DE LAS PIEZAS EN EL TABLERO (SECTOR BLANCO Y SECTOR NEGRO) Y ESPACIOS VACIOS(TOTAL)
+
+#Organizacion de las piezas en el tablero (sector blanco y sector negro) y espacios vacios (total)
 TABLERO_INICIO = [  BLANCO|TORRE, BLANCO|CABALLO, BLANCO|ALFIL, BLANCO|QUEEN, BLANCO|KING, BLANCO|ALFIL, BLANCO|CABALLO, BLANCO|TORRE,
                     BLANCO|PEON,  BLANCO|PEON,    BLANCO|PEON,  BLANCO|PEON,  BLANCO|PEON, BLANCO|PEON,  BLANCO|PEON,    BLANCO|PEON, 
                   	VACIO,        VACIO,          VACIO,        VACIO,        VACIO,       VACIO,        VACIO,          VACIO,
@@ -73,7 +81,8 @@ TABLERO_VACIO = [ VACIO for _ in range(64) ]
 
 INICIAL_FEN = 'tcaqkact/pppppppp/8/8/8/8/PPPPPPPP/TCAQKACT w KQkq - 0 1'
 STROKES_YOLO = '1k6/2a1p3/Qp4C1/4t2P/2A2q2/1T6/2Pc2K1/8 w - - 0 1'
-#IDENTIFICACION DE CADA UNA DE LAS PIEZAS (Con un caracter utilizado como id)
+
+#Identificación de cada una de las piezas (con un caracter utilizado como id)
 PIEZA_CODIG = { BLANCO|KING :  'K',
                 BLANCO|QUEEN:  'Q',
                 BLANCO|TORRE:  'T',
@@ -87,7 +96,8 @@ PIEZA_CODIG = { BLANCO|KING :  'K',
                 NEGRO |CABALLO:'c',
                 NEGRO |PEON:   'p',
                 VACIO:         '.' }
-#se agregan los codigos asignados a cada una de las piezas 
+
+#Se agregan los codigos asignados a cada una de las piezas 
 PIEZA_CODIG.update({v: k for k, v in PIEZA_CODIG.items()})
 
 DUPLICA_PEON_PENALIZA      = 10
@@ -97,7 +107,8 @@ PEON_PASADO_BONUS          = 20
 TORRE_SEMI_OPEN_FILE_BONUS = 10
 TORRE_OPEN_FILE_BONUS      = 15
 TORRE_EN_SEPTIMA_BONUS     = 20
-#BONOS POR TIPO DE PIEZA
+
+#Bonos por tipo de pieza
 PEON_BONUS = [0,   0,   0,   0,   0,   0,   0,   0,
               0,   0,   0, -40, -40,   0,   0,   0,
               1,   2,   3, -10, -10,   3,   2,   1,
