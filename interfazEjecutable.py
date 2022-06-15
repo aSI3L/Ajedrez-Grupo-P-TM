@@ -4,6 +4,7 @@ from traceback import format_exc
 from sys import stderr
 from time import strftime
 from copy import deepcopy
+from tkinter import *
 
 pygame.init()
 
@@ -46,10 +47,12 @@ RELOJ_TICK = 15
 VENTANA = pygame.display.set_mode((8*CASILLERO_TAM, 8*CASILLERO_TAM))
 TITULO_VENTANA = "AJEDREZ - METODOLOGiA 2022"
 
+
 #Se coloca el icono del juego para la ventana de visualización con image.load
 #Se coloca el título de la ventana actual usando pygame.set_caption()
-pygame.display.set_icon(pygame.image.load('imagenes/icono.ico'))
-pygame.display.set_caption(TITULO_VENTANA)
+def mostrarVentana():
+    pygame.display.set_icon(pygame.image.load('imagenes/icono.ico'))
+    pygame.display.set_caption(TITULO_VENTANA)
 
 #Se imprime el tablero vacio
 #Se le da color a las casillas claras y oscuras
@@ -222,3 +225,67 @@ def juega_con_aleatorio(juega=ajedrez.Juega()):
     juega_con(juega, color)
 
 juega_con_aleatorio()
+# Menu
+raiz = Tk()
+raiz.title("Ajedrez")
+raiz.iconbitmap("imagenes/icono.ico")
+raiz.config(bg="black")
+
+miFrame = Frame()
+
+# Agrego el frame a la ventana
+miFrame.pack()
+
+# Color de fondo
+miFrame.config(bg="black")
+
+# Tamaño del frame
+miFrame.config(width="650", height="350")
+
+# Borde
+miFrame.config(bd=30)
+miFrame.config(relief="groove")
+
+
+# Label
+frame2 = Frame(miFrame)
+frame2.config(width="220")
+frame2.grid(row=1, column=0)
+frame3 = Frame(miFrame)
+frame3.config(width="220")
+frame3.grid(row=1, column=1)
+frame4 = Frame(miFrame)
+frame4.config(width="220")
+frame4.grid(row=1, column=2)
+Label(miFrame, text="Bienvenido a ajedrez", fg="white",
+      font=(18), bg="black").grid(row=1, column=1)
+
+# Acciones de Botones
+
+
+def btn_blancas():
+    raiz.destroy()
+    mostrarVentana()
+    juega_con_blancas()
+
+
+def btn_negras():
+    raiz.destroy()
+    mostrarVentana()
+    juega_con_negras()
+
+
+def btn_aleatorio():
+    raiz.destroy()
+    mostrarVentana()
+    juega_con_aleatorio()
+
+# Boton
+Button(miFrame, text="jugar con blancas",
+       command=btn_blancas).grid(row=3, column=1)
+negras = Button(miFrame, text="jugar con negras", command=btn_aleatorio)
+negras.grid(row=4, column=1)
+aleatorio = Button(miFrame, text="jugar con aleatorio", command=btn_aleatorio)
+aleatorio.grid(row=5, column=1)
+
+raiz.mainloop()
