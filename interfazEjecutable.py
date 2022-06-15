@@ -224,7 +224,7 @@ def juega_con_aleatorio(juega=ajedrez.Juega()):
     color = choice([ajedrez.BLANCO, ajedrez.NEGRO])
     juega_con(juega, color)
 
-juega_con_aleatorio()
+#juega_con_aleatorio()
 # Menu
 raiz = Tk()
 raiz.title("Ajedrez")
