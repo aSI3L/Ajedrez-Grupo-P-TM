@@ -202,7 +202,6 @@ def juega_con(juega, color):
                         ongoing = True
                     if event.key == 112: #Tecla P - Historial de Posiciones
                         print(juega.get_mov_list() + '\n')
-                        print('\n'.join(juega.posicion_historial))
                     if event.key == 101: 	#Tecla E - Evalua puntaje del juego
                         print('Puntaje actual = ' + str(ajedrez.evalua_juego(juega)/100))
 
