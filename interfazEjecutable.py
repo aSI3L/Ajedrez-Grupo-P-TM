@@ -224,8 +224,8 @@ def juega_con_aleatorio(juega=ajedrez.Juega()):
     color = choice([ajedrez.BLANCO, ajedrez.NEGRO])
     juega_con(juega, color)
 
-#juega_con_aleatorio()
-# Menu
+# ========== MENÚ ==========
+
 raiz = Tk()
 raiz.title("Ajedrez")
 raiz.iconbitmap("imagenes/icono.ico")
@@ -233,7 +233,7 @@ raiz.config(bg="black")
 
 miFrame = Frame()
 
-# Agrego el frame a la ventana
+# Se agrega el frame a la ventana
 miFrame.pack()
 
 # Color de fondo
@@ -246,7 +246,6 @@ miFrame.config(width="650", height="350")
 miFrame.config(bd=30)
 miFrame.config(relief="groove")
 
-
 # Label
 frame2 = Frame(miFrame)
 frame2.config(width="220")
@@ -257,11 +256,10 @@ frame3.grid(row=1, column=1)
 frame4 = Frame(miFrame)
 frame4.config(width="220")
 frame4.grid(row=1, column=2)
-Label(miFrame, text="Bienvenido a ajedrez", fg="white",
+Label(miFrame, text="Ajedrez vs IA", fg="white",
       font=(18), bg="black").grid(row=1, column=1)
 
 # Acciones de Botones
-
 
 def btn_blancas():
     raiz.destroy()
@@ -281,11 +279,11 @@ def btn_aleatorio():
     juega_con_aleatorio()
 
 # Boton
-Button(miFrame, text="jugar con blancas",
+Button(miFrame, text="Jugar con Blancas",
        command=btn_blancas).grid(row=3, column=1)
-negras = Button(miFrame, text="jugar con negras", command=btn_aleatorio)
+negras = Button(miFrame, text="Jugar con Negras", command=btn_aleatorio)
 negras.grid(row=4, column=1)
-aleatorio = Button(miFrame, text="jugar con aleatorio", command=btn_aleatorio)
+aleatorio = Button(miFrame, text="Jugar con Aleatorio", command=btn_aleatorio)
 aleatorio.grid(row=5, column=1)
 
 raiz.mainloop()
