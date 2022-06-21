@@ -1,0 +1,12 @@
+Instrucciones para jugar:
+
+1- Descargar el repositorio de github
+2- Instalar python en el ordenador
+  sudo apt-get install python3 => en la consola
+3- Instalar dependencias necesesarias:
+  sudo apt-get install python-tk
+  sudo apt-get install python-pip python-dev
+  sudo pip install pygame
+4- Correr el programa
+  Desde la terminal dirigirse al directorio donde estan los archivos .py
+  con el comando python3 interfazEjecutable.py se iniciará el juego
