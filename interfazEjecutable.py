@@ -51,7 +51,7 @@ TITULO_VENTANA = "AJEDREZ - METODOLOGiA 2022"
 #Se coloca el icono del juego para la ventana de visualización con image.load
 #Se coloca el título de la ventana actual usando pygame.set_caption()
 def mostrarVentana():
-    pygame.display.set_icon(pygame.image.load('imagenes/icono.ico'))
+    pygame.display.set_icon(pygame.image.load('sprites_pinguinos/icono.ico'))
     pygame.display.set_caption(TITULO_VENTANA)
 
 #Se imprime el tablero vacio
@@ -228,7 +228,7 @@ def juega_con_aleatorio(juega=ajedrez.Juega()):
 
 raiz = Tk()
 raiz.title("Ajedrez")
-raiz.iconbitmap("imagenes/icono.ico")
+#raiz.iconbitmap("imagenes/icono.ico")
 raiz.config(bg="black")
 
 miFrame = Frame()
@@ -281,7 +281,7 @@ def btn_aleatorio():
 # Boton
 Button(miFrame, text="Jugar con Blancas",
        command=btn_blancas).grid(row=3, column=1)
-negras = Button(miFrame, text="Jugar con Negras", command=btn_aleatorio)
+negras = Button(miFrame, text="Jugar con Negras", command=btn_negras)
 negras.grid(row=4, column=1)
 aleatorio = Button(miFrame, text="Jugar con Aleatorio", command=btn_aleatorio)
 aleatorio.grid(row=5, column=1)
